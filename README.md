@@ -1,4 +1,4 @@
-# Pauli Propiedades - Plataforma Inmobiliaria Interactiva 🏡✨
+# Aliaga Gestión & Corretaje - Portal Inmobiliario 🏡✨
 
 Plataforma web moderna e interactiva desarrollada con **React + Vite + TypeScript + Tailwind CSS** para visualización multimedia de propiedades (fotografías en alta resolución y video tours 4K) y gestión de solicitudes de arriendo y compra.
 
@@ -15,7 +15,7 @@ Plataforma web moderna e interactiva desarrollada con **React + Vite + TypeScrip
 ### 2. 📝 Solicitudes de Compra y Arriendo
 - **Agendar Visita Personalizada**: Formulario para coordinar visitas **Presenciales** o por **Videollamada en vivo** con fecha y hora preferida.
 - **"Busco una Propiedad a mi Medida"**: Formulario guiado donde los clientes ingresan su presupuesto (CLP / UF), comunas de interés, dormitorios, amenidades deseadas y requisitos indispensables.
-- **Integración Directa con WhatsApp**: Enlaces directos que generan mensajes automáticos pre-rellenados con el código de la propiedad (`PL-301`, etc.), título y valor.
+- **Integración Directa con WhatsApp**: Enlaces directos que generan mensajes automáticos pre-rellenados con el código de la propiedad (`PL-301`, etc.), título y valor (+56 9 7669 1216).
 
 ### 3. ⚖️ Comparador de Propiedades
 - Selecciona hasta 4 propiedades para contrastar lado a lado sus especificaciones (Precio, Gastos comunes, m² totales y útiles, dormitorios, baños, estacionamientos, si acepta mascotas y comodidades).
@@ -26,7 +26,7 @@ Plataforma web moderna e interactiva desarrollada con **React + Vite + TypeScrip
 ### 5. 🔐 Mantenedor de Propiedades con Acceso Seguro (Usuario y Clave)
 - **Control de Acceso Seguro**:
   - Requiere inicio de sesión con credenciales de administrador antes de ingresar al mantenedor.
-  - **Usuario por defecto:** `admin` (o `paulina@paulipropiedades.cl`)
+  - **Usuario por defecto:** `admin` (o `contacto@paulipropiedades.cl`)
   - **Contraseña por defecto:** `pauli2026`
   - Botón de auto-completado rápido para pruebas inmediatas y validación de errores en tiempo real.
 - **Gestión Completa de Publicaciones (CRUD)**:
@@ -36,7 +36,7 @@ Plataforma web moderna e interactiva desarrollada con **React + Vite + TypeScrip
   - **Edición y Eliminación**: Modificación inmediata de cualquier propiedad y eliminación permanente con confirmación.
   - **Cambio de Estado en 1 Clic**: Actualiza directamente en la tabla si una propiedad está `Disponible`, `Reservada` o `Vendida / Arrendada`.
 - **CRM de Solicitudes**:
-  - Pestaña de **Visitas Agendadas**: Gestiona citas presenciales o videollamadas con botón para contactar al cliente por WhatsApp.
+  - Pestaña de **Visitas Agendadas**: Gestiona citas presenciales o videollamada con botón para contactar al cliente por WhatsApp.
   - Pestaña de **Solicitudes a Medida**: Revisa requerimientos de búsqueda personalizados con presupuesto y comunas.
 - **Seguridad & Clave de Acceso**:
   - Formulario para actualizar la contraseña del mantenedor en cualquier momento.
@@ -47,7 +47,7 @@ Plataforma web moderna e interactiva desarrollada con **React + Vite + TypeScrip
 ## 💻 Ejecución del Proyecto
 
 El servidor de desarrollo ya está activo en tu equipo:
-- **Local:** [http://localhost:3000](http://localhost:3000)
+- **Local:** `http://localhost:3000`
 - **Red Local:** `http://192.168.0.17:3000`
 
 ### Comandos útiles:
