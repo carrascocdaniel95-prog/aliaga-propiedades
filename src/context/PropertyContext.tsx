@@ -1,6 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { Property, PropertyFilters, VisitRequest, CustomPropertyRequest } from '../types/property';
 import { INITIAL_PROPERTIES, INITIAL_VISIT_REQUESTS, INITIAL_CUSTOM_REQUESTS } from '../data/mockProperties';
+import {
+  isSupabaseConfigured,
+  fetchPropertiesFromSupabase,
+  upsertPropertyToSupabase,
+  deletePropertyFromSupabase,
+  insertVisitRequestToSupabase,
+  insertCustomRequestToSupabase
+} from '../lib/supabase';
 
 interface PropertyContextType {
   properties: Property[];
@@ -76,7 +84,7 @@ const DEFAULT_FILTERS: PropertyFilters = {
 const PropertyContext = createContext<PropertyContextType | undefined>(undefined);
 
 export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Properties state with localStorage persistence
+  // Properties state with localStorage persistence & Supabase cloud sync
   const [properties, setProperties] = useState<Property[]>(() => {
     const saved = localStorage.getItem('pauli_properties');
     if (saved) {
@@ -85,9 +93,21 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return INITIAL_PROPERTIES;
   });
 
+  // Sync to localStorage
   useEffect(() => {
     localStorage.setItem('pauli_properties', JSON.stringify(properties));
   }, [properties]);
+
+  // Cargar propiedades desde Supabase si está configurado
+  useEffect(() => {
+    if (isSupabaseConfigured()) {
+      fetchPropertiesFromSupabase().then(cloudProps => {
+        if (cloudProps && cloudProps.length > 0) {
+          setProperties(cloudProps);
+        }
+      });
+    }
+  }, []);
 
   // Filters state
   const [filters, setFilters] = useState<PropertyFilters>(DEFAULT_FILTERS);
@@ -233,20 +253,37 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       createdAt: new Date().toISOString().split('T')[0]
     };
     setProperties(prev => [newProp, ...prev]);
+    if (isSupabaseConfigured()) {
+      upsertPropertyToSupabase(newProp);
+    }
   };
 
   const updateProperty = (id: string, updated: Partial<Property>) => {
-    setProperties(prev => prev.map(p => p.id === id ? { ...p, ...updated } : p));
+    let updatedFull: Property | null = null;
+    setProperties(prev => prev.map(p => {
+      if (p.id === id) {
+        updatedFull = { ...p, ...updated };
+        return updatedFull;
+      }
+      return p;
+    }));
     if (selectedProperty && selectedProperty.id === id) {
       setSelectedProperty(prev => prev ? { ...prev, ...updated } : null);
+    }
+    if (isSupabaseConfigured() && updatedFull) {
+      upsertPropertyToSupabase(updatedFull);
     }
   };
 
   const deleteProperty = (id: string) => {
+    const target = properties.find(p => p.id === id);
     setProperties(prev => prev.filter(p => p.id !== id));
     setFavorites(prev => prev.filter(favId => favId !== id));
     setComparisonList(prev => prev.filter(compId => compId !== id));
     if (selectedProperty?.id === id) setSelectedProperty(null);
+    if (isSupabaseConfigured() && target) {
+      deletePropertyFromSupabase(target);
+    }
   };
 
   const resetDefaultProperties = () => {
@@ -292,6 +329,9 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       createdAt: new Date().toLocaleString('es-CL')
     };
     setVisitRequests(prev => [newRequest, ...prev]);
+    if (isSupabaseConfigured()) {
+      insertVisitRequestToSupabase(requestData);
+    }
   };
 
   const updateVisitStatus = (id: string, status: VisitRequest['status']) => {
@@ -306,6 +346,9 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       createdAt: new Date().toLocaleString('es-CL')
     };
     setCustomRequests(prev => [newRequest, ...prev]);
+    if (isSupabaseConfigured()) {
+      insertCustomRequestToSupabase(requestData);
+    }
   };
 
   const updateCustomRequestStatus = (id: string, status: CustomPropertyRequest['status']) => {

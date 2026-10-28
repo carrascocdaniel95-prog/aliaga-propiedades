@@ -85,45 +85,110 @@ CREATE TABLE IF NOT EXISTS public.custom_property_requests (
 
 -- ========================================================
 -- Políticas de Seguridad (Row Level Security - RLS)
+-- Permiten a la aplicación web sincronizarse con la API pública
 -- ========================================================
 
--- Activar RLS en todas las tablas
 ALTER TABLE public.properties ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.visit_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.custom_property_requests ENABLE ROW LEVEL SECURITY;
 
--- Propiedades: lectura pública para cualquier visitante de la web
-CREATE POLICY "Lectura pública de propiedades" 
-    ON public.properties FOR SELECT 
-    USING (true);
+-- Limpieza preventiva de políticas anteriores
+DROP POLICY IF EXISTS "Acceso total a propiedades" ON public.properties;
+DROP POLICY IF EXISTS "Acceso total a solicitudes de visita" ON public.visit_requests;
+DROP POLICY IF EXISTS "Acceso total a búsquedas personalizadas" ON public.custom_property_requests;
 
--- Propiedades: creación, actualización y borrado solo para usuarios autenticados (Admin)
-CREATE POLICY "Admin gestiona propiedades" 
-    ON public.properties FOR ALL 
-    TO authenticated 
-    USING (true) 
+-- Políticas de acceso para la aplicación web
+CREATE POLICY "Acceso total a propiedades"
+    ON public.properties FOR ALL
+    USING (true)
     WITH CHECK (true);
 
--- Solicitudes de visita: cualquiera puede enviar una solicitud (INSERT)
-CREATE POLICY "Público puede agendar visitas" 
-    ON public.visit_requests FOR INSERT 
+CREATE POLICY "Acceso total a solicitudes de visita"
+    ON public.visit_requests FOR ALL
+    USING (true)
     WITH CHECK (true);
 
--- Solicitudes de visita: solo admin puede verlas y modificarlas
-CREATE POLICY "Admin gestiona solicitudes de visita" 
-    ON public.visit_requests FOR ALL 
-    TO authenticated 
-    USING (true) 
+CREATE POLICY "Acceso total a búsquedas personalizadas"
+    ON public.custom_property_requests FOR ALL
+    USING (true)
     WITH CHECK (true);
 
--- Solicitudes personalizadas: cualquiera puede enviar su solicitud
-CREATE POLICY "Público puede solicitar búsqueda" 
-    ON public.custom_property_requests FOR INSERT 
-    WITH CHECK (true);
+-- ========================================================
+-- Catálogo Inicial de Propiedades (Semillero / Seed)
+-- ========================================================
 
--- Solicitudes personalizadas: solo admin puede gestionarlas
-CREATE POLICY "Admin gestiona búsquedas personalizadas" 
-    ON public.custom_property_requests FOR ALL 
-    TO authenticated 
-    USING (true) 
-    WITH CHECK (true);
+INSERT INTO public.properties (code, title, description, operation, property_type, status, featured, price, currency, price_uf, common_expenses, address, commune, city, neighborhood, map_embed_url, specs, amenities, images, video_url, video_type, agent)
+VALUES 
+(
+    'PL-701',
+    'Exclusiva Villa Lacustre en Pucón con Playa Privada & Vista al Volcán',
+    'Impresionante residencia frente al Lago Villarrica, emplazada en un terreno con añosos coigües, arrayanes y araucarias nativas. Construcción de diseño bioclimático en madera noble de roble de demolición y piedra volcánica. Cuenta con amplio living comedor con chimenea flotante de acero, ventanales panorámicos hacia el lago y el volcán Villarrica. Muelle privado para lancha, bajada de embarcaciones, quincho cerrado frente a la playa y hot-tub de cedro.',
+    'venta',
+    'casa',
+    'disponible',
+    true,
+    28500,
+    'UF',
+    28500,
+    120000,
+    'Camino Pucón a Villarrica km 8.5',
+    'Pucón',
+    'La Araucanía',
+    'Playa Linda',
+    'https://maps.google.com/maps?q=Pucon,+Araucania&t=&z=13&ie=UTF8&iwloc=&output=embed',
+    '{"bedrooms": 5, "bathrooms": 5, "parkingSpots": 6, "totalArea": 5200, "builtArea": 420, "petFriendly": true, "orientation": "Norte", "yearBuilt": 2023}'::jsonb,
+    ARRAY['Orilla de lago privada', 'Muelle propio para lanchas', 'Hot-tub de madera nativa', 'Bosque nativo con Araucarias', 'Quincho panorámico con parrilla y spiedo', 'Chimenea a leña de alto rendimiento', 'Calefacción central por aerotermia', 'Generador eléctrico de respaldo', 'Seguridad privada con control de acceso'],
+    ARRAY['https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1600&q=80', 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=1600&q=80', 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80'],
+    'https://www.youtube.com/embed/n4d1-J2q1-s?autoplay=0',
+    'youtube',
+    '{"name": "Paulina Aliaga", "role": "Directora & Broker Inmobiliaria", "phone": "+56 9 7669 1216", "whatsapp": "56976691216", "email": "contacto@paulipropiedades.cl"}'::jsonb
+),
+(
+    'PL-702',
+    'Refugio de Montaña Contemporáneo en Malalcahuello',
+    'Exclusiva propiedad estilo A-frame nórdico en el corazón del valle de Malalcahuello, a minutos del centro de esquí Corralco y la Reserva Nacional Malalcahuello-Nalcas. Inmersa en un bosque prístino de araucarias milenarias. Aislación térmica superior con ventanas termopanel triple, estufa a pellets con encendido domótico por smartphone, terraza con tina caliente temperada y vista directa al Volcán Lonquimay.',
+    'arriendo',
+    'casa',
+    'disponible',
+    true,
+    1450000,
+    'CLP',
+    NULL,
+    45000,
+    'Ruta 181 km 88, Sector Suizo',
+    'Malalcahuello',
+    'La Araucanía',
+    'Valle Las Raíces',
+    'https://maps.google.com/maps?q=Malalcahuello,+Curacautin&t=&z=13&ie=UTF8&iwloc=&output=embed',
+    '{"bedrooms": 3, "bathrooms": 2, "parkingSpots": 4, "totalArea": 2500, "builtArea": 165, "petFriendly": true, "orientation": "Nororiente", "yearBuilt": 2024}'::jsonb,
+    ARRAY['Bosque de Araucarias milenarias', 'Tina de agua caliente exterior (Hot-Tub)', 'A 10 min de Termas y Corralco Ski Resort', 'Internet fibra óptica de alta velocidad', 'Estufa a pellets inteligente', 'Guarda-esquís calefaccionado', 'Terraza con deck de pino oregón'],
+    ARRAY['https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1600&q=80', 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1600&q=80'],
+    'https://www.youtube.com/embed/ScMzIvxBSi4?autoplay=0',
+    'youtube',
+    '{"name": "Paulina Aliaga", "role": "Directora & Broker Inmobiliaria", "phone": "+56 9 7669 1216", "whatsapp": "56976691216", "email": "contacto@paulipropiedades.cl"}'::jsonb
+),
+(
+    'PL-703',
+    'Penthouse Dúplex de Lujo en Los Pablos, Temuco',
+    'Extraordinario penthouse dúplex ubicado en el sector más exclusivo de Los Pablos en Temuco. Vista despejada panorámica de 270 grados a la cordillera y al Monumento Natural Cerro Ñielol. Doble altura en living con muro de piedra laja y chimenea a bioetanol. Terraza privada en azotea de 95 m² con jacuzzi techado, quincho integrado con mesón de granito negro y bar.',
+    'venta',
+    'penthouse',
+    'disponible',
+    true,
+    16800,
+    'UF',
+    16800,
+    320000,
+    'Av. Los Pablos 2190',
+    'Temuco',
+    'La Araucanía',
+    'Los Pablos',
+    'https://maps.google.com/maps?q=Los+Pablos,+Temuco&t=&z=14&ie=UTF8&iwloc=&output=embed',
+    '{"bedrooms": 4, "bathrooms": 4, "parkingSpots": 3, "totalArea": 310, "builtArea": 215, "petFriendly": true, "orientation": "Suroriente", "yearBuilt": 2022}'::jsonb,
+    ARRAY['Azotea privada con jacuzzi panorámico', 'Quincho cerrado exclusivo en piso superior', 'Calefacción central por losa radiante', 'Ascensor directo al departamento con clave', 'Seguridad 24/7 con circuito cerrado', 'Club House y piscina temperada del condominio'],
+    ARRAY['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1600&q=80', 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1600&q=80'],
+    'https://www.youtube.com/embed/ysz5S6PUM-U?autoplay=0',
+    'youtube',
+    '{"name": "Paulina Aliaga", "role": "Directora & Broker Inmobiliaria", "phone": "+56 9 7669 1216", "whatsapp": "56976691216", "email": "contacto@paulipropiedades.cl"}'::jsonb
+)
+ON CONFLICT (code) DO NOTHING;
