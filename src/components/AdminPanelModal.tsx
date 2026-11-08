@@ -25,6 +25,7 @@ import {
 import { useProperties } from '../context/PropertyContext';
 import { useAuth } from '../context/AuthContext';
 import { AdminLogin } from './AdminLogin';
+import { PhotoUploader } from './PhotoUploader';
 import { Property, OperationType, PropertyType, PropertyStatus } from '../types/property';
 import { formatPrice, getWhatsAppUrl } from '../utils/formatters';
 
@@ -61,7 +62,7 @@ export const AdminPanelModal: React.FC = () => {
     updateCustomRequestStatus
   } = useProperties();
 
-  const { isAuthenticated, currentUser, logout, changePassword, resetDefaultPassword } = useAuth();
+  const { isAuthenticated, currentUser, logout, changePassword } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'properties' | 'create_edit' | 'visits' | 'custom_requests' | 'security'>('properties');
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
@@ -101,6 +102,7 @@ export const AdminPanelModal: React.FC = () => {
 
   // Multimedia form
   const [formImages, setFormImages] = useState('');
+  const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
   const [formVideoUrl, setFormVideoUrl] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([
@@ -215,7 +217,7 @@ export const AdminPanelModal: React.FC = () => {
     setFormOrientation('Nororiente');
     setFormYearBuilt(2022);
     setFormPetFriendly(true);
-    setFormImages('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80\nhttps://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1600&q=80\nhttps://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1600&q=80');
+    setFormImages('');
     setFormVideoUrl('https://www.youtube.com/embed/kJQP7kiw5Fk');
     setFormDescription('Excelente propiedad con amplios espacios, finas terminaciones en cuarzo y madera natural. Gran conectividad y seguridad.');
     setSelectedAmenities(['Piscina temperada', 'Quincho techado', 'Seguridad 24/7', 'Conserjería', 'Gimnasio equipado']);
@@ -300,13 +302,13 @@ export const AdminPanelModal: React.FC = () => {
     setActiveTab('properties');
   };
 
-  const handleChangePasswordSubmit = (e: React.FormEvent) => {
+  const handleChangePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPass !== confirmPass) {
       setSecurityMsg({ text: 'Las nuevas contraseñas no coinciden.', isError: true });
       return;
     }
-    const res = changePassword(currentPass, newPass);
+    const res = await changePassword(currentPass, newPass);
     if (res.success) {
       setSecurityMsg({ text: res.message || 'Contraseña cambiada.', isError: false });
       setCurrentPass('');
@@ -985,10 +987,15 @@ export const AdminPanelModal: React.FC = () => {
                   <span className="text-[11px] text-slate-400 font-normal">Previsualización en tiempo real</span>
                 </h5>
 
+                <PhotoUploader
+                  onUploaded={(url) => setFormImages(prev => (prev.trim() ? `${prev.trim()}\n${url}` : url))}
+                  onUploadingChange={setIsUploadingPhotos}
+                />
+
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="block text-xs font-bold text-slate-700">
-                      URLs de Fotos en Alta Calidad (Una por línea)
+                      O pega URLs de fotos (una por línea)
                     </label>
                     <button
                       type="button"
@@ -1026,7 +1033,7 @@ export const AdminPanelModal: React.FC = () => {
                               const updated = imagePreviews.filter((_, i) => i !== idx);
                               setFormImages(updated.join('\n'));
                             }}
-                            className="absolute top-1 right-1 p-0.5 rounded-full bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute top-1 right-1 p-0.5 rounded-full bg-black/70 text-white sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                           >
                             <X className="w-3 h-3" />
                           </button>
@@ -1123,9 +1130,12 @@ export const AdminPanelModal: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-7 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-lg shadow-teal-600/25 transition-all"
+                  disabled={isUploadingPhotos}
+                  className="px-7 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-lg shadow-teal-600/25 transition-all disabled:opacity-50"
                 >
-                  {editingProperty ? 'Guardar Cambios de Propiedad' : 'Publicar Propiedad en Catálogo'}
+                  {isUploadingPhotos
+                    ? 'Subiendo fotos...'
+                    : editingProperty ? 'Guardar Cambios de Propiedad' : 'Publicar Propiedad en Catálogo'}
                 </button>
               </div>
 
@@ -1322,7 +1332,7 @@ export const AdminPanelModal: React.FC = () => {
                     required
                     value={newPass}
                     onChange={(e) => setNewPass(e.target.value)}
-                    placeholder="Mínimo 5 caracteres"
+                    placeholder="Mínimo 8 caracteres"
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono"
                   />
                 </div>
@@ -1347,19 +1357,9 @@ export const AdminPanelModal: React.FC = () => {
                 </button>
               </form>
 
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                <span>¿Olvidaste tu contraseña?</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    resetDefaultPassword();
-                    alert('La contraseña ha sido restablecida a la predeterminada: pauli2026');
-                  }}
-                  className="text-teal-700 font-bold underline"
-                >
-                  Restablecer a "pauli2026"
-                </button>
-              </div>
+              <p className="pt-4 border-t border-slate-100 text-xs text-slate-500">
+                Si olvidas tu contraseña, se puede restablecer desde el panel de Supabase, en Authentication &gt; Users.
+              </p>
 
             </div>
           )}

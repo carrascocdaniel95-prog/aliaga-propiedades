@@ -26,12 +26,10 @@ Plataforma web moderna e interactiva desarrollada con **React + Vite + TypeScrip
 ### 5. 🔐 Mantenedor de Propiedades con Acceso Seguro (Usuario y Clave)
 - **Control de Acceso Seguro**:
   - Requiere inicio de sesión con credenciales de administrador antes de ingresar al mantenedor.
-  - **Usuario por defecto:** `admin` (o `contacto@paulipropiedades.cl`)
-  - **Contraseña por defecto:** `pauli2026`
-  - Botón de auto-completado rápido para pruebas inmediatas y validación de errores en tiempo real.
+  - El acceso usa Supabase Auth. Los pasos para crear al administrador están al inicio de `supabase-storage-auth.sql`.
 - **Gestión Completa de Publicaciones (CRUD)**:
   - **+ Agregar Nueva Propiedad**: Formulario con código, título, operación (Venta/Arriendo), tipo de inmueble, estado (Disponible, Reservado, Vendido), precio en UF o CLP, gastos comunes, dirección y comuna.
-  - **Gestión Multimedia en Vivo**: Carga de URLs de fotos con previsualizador instantáneo de imágenes y campo para video tour 4K.
+  - **Gestión Multimedia en Vivo**: Subida de fotos desde el dispositivo (Supabase Storage, con compresión automática) o por URL, con previsualizador instantáneo de imágenes y campo para video tour 4K.
   - **Equipamiento & Amenidades**: Checklist de amenidades predeterminadas más opción de agregar amenidades personalizadas.
   - **Edición y Eliminación**: Modificación inmediata de cualquier propiedad y eliminación permanente con confirmación.
   - **Cambio de Estado en 1 Clic**: Actualiza directamente en la tabla si una propiedad está `Disponible`, `Reservada` o `Vendida / Arrendada`.
@@ -40,7 +38,7 @@ Plataforma web moderna e interactiva desarrollada con **React + Vite + TypeScrip
   - Pestaña de **Solicitudes a Medida**: Revisa requerimientos de búsqueda personalizados con presupuesto y comunas.
 - **Seguridad & Clave de Acceso**:
   - Formulario para actualizar la contraseña del mantenedor en cualquier momento.
-  - Opción de restaurar la contraseña a su valor inicial en caso de olvido.
+  - En caso de olvido, la contraseña se restablece desde el panel de Supabase (Authentication > Users).
 
 ---
 

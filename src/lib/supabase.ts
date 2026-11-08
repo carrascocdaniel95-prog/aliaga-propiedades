@@ -142,16 +142,49 @@ export const deletePropertyFromSupabase = async (property: Property): Promise<bo
       ? supabase.from('properties').delete().eq('id', property.id)
       : supabase.from('properties').delete().eq('code', property.code);
 
-    const { error } = await query;
+    // Sin .select(), un borrado bloqueado por RLS no da error: solo afecta 0 filas.
+    const { data, error } = await query.select('id');
     if (error) {
       console.error('Error al eliminar propiedad en Supabase:', error.message);
       return false;
     }
-    return true;
+    return (data || []).length > 0;
   } catch (err) {
     console.error('Error al conectar con Supabase en delete:', err);
     return false;
   }
+};
+
+// ==========================================
+// Fotos de propiedades (Supabase Storage)
+// ==========================================
+
+const PROPERTY_IMAGES_BUCKET = 'property-images';
+const PROPERTY_IMAGES_PREFIX = `${supabaseUrl}/storage/v1/object/public/${PROPERTY_IMAGES_BUCKET}/`;
+
+export const uploadPropertyImage = async (image: Blob): Promise<string> => {
+  if (!supabase) throw new Error('Supabase no está configurado');
+
+  const extension = image.type === 'image/webp' ? 'webp' : 'jpg';
+  const path = `${crypto.randomUUID()}.${extension}`;
+  const { error } = await supabase.storage
+    .from(PROPERTY_IMAGES_BUCKET)
+    .upload(path, image, { contentType: image.type, cacheControl: '31536000' });
+
+  if (error) throw new Error(error.message);
+  return supabase.storage.from(PROPERTY_IMAGES_BUCKET).getPublicUrl(path).data.publicUrl;
+};
+
+/** Borra del bucket las fotos indicadas; ignora las URLs externas (Unsplash, etc.). */
+export const deletePropertyImages = async (urls: string[]): Promise<void> => {
+  if (!supabase) return;
+  const paths = urls
+    .filter(url => url.startsWith(PROPERTY_IMAGES_PREFIX))
+    .map(url => decodeURIComponent(url.slice(PROPERTY_IMAGES_PREFIX.length)));
+  if (paths.length === 0) return;
+
+  const { error } = await supabase.storage.from(PROPERTY_IMAGES_BUCKET).remove(paths);
+  if (error) console.warn('No se pudieron borrar fotos del almacenamiento:', error.message);
 };
 
 // Solicitudes de visita

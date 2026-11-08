@@ -5,10 +5,8 @@ import {
   KeyRound, 
   Eye, 
   EyeOff, 
-  ShieldCheck, 
-  AlertCircle, 
-  Building2, 
-  Sparkles,
+  ShieldCheck,
+  AlertCircle,
   ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -20,33 +18,29 @@ interface AdminLoginProps {
 
 export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onCancel }) => {
   const { login } = useAuth();
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('pauli2026');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setIsLoading(true);
 
-    setTimeout(() => {
-      const res = login(username, password);
-      setIsLoading(false);
-
+    try {
+      const res = await login(email, password);
       if (res.success) {
         onSuccess();
       } else {
         setErrorMsg(res.message || 'Credenciales incorrectas');
       }
-    }, 400);
-  };
-
-  const fillQuickCredentials = (u: string, p: string) => {
-    setUsername(u);
-    setPassword(p);
-    setErrorMsg('');
+    } catch {
+      setErrorMsg('No se pudo conectar con el servidor. Intenta nuevamente.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -89,17 +83,18 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onCancel }) =
         {/* Username */}
         <div>
           <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-            Usuario o Correo
+            Correo
           </label>
           <div className="relative">
             <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
-              type="text"
+              type="email"
               required
               autoFocus
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="admin o paulina@paulipropiedades.cl"
+              autoComplete="username"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="correo@ejemplo.cl"
               className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
             />
           </div>
@@ -117,6 +112,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onCancel }) =
             <input
               type={showPassword ? 'text' : 'password'}
               required
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
@@ -129,27 +125,6 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onCancel }) =
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
-          </div>
-        </div>
-
-        {/* Quick Credentials Helper Card */}
-        <div className="bg-teal-50/70 border border-teal-200/80 rounded-2xl p-3.5 space-y-1.5 text-[11px] text-teal-900">
-          <div className="flex items-center justify-between font-bold text-teal-800">
-            <span className="flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-teal-600" />
-              Credenciales de Administrador:
-            </span>
-            <button
-              type="button"
-              onClick={() => fillQuickCredentials('admin', 'pauli2026')}
-              className="text-teal-700 underline hover:text-teal-900 font-bold"
-            >
-              Autocompletar
-            </button>
-          </div>
-          <div className="flex items-center justify-between font-mono text-[11px] text-slate-600">
-            <span>Usuario: <strong>admin</strong></span>
-            <span>Clave: <strong>pauli2026</strong></span>
           </div>
         </div>
 

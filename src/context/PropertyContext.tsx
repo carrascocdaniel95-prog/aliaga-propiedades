@@ -7,8 +7,11 @@ import {
   upsertPropertyToSupabase,
   deletePropertyFromSupabase,
   insertVisitRequestToSupabase,
-  insertCustomRequestToSupabase
+  insertCustomRequestToSupabase,
+  deletePropertyImages
 } from '../lib/supabase';
+
+const CLOUD_SAVE_ERROR = 'La propiedad no se pudo guardar en la nube y no será visible para los visitantes. Revisa tu sesión e inténtalo nuevamente.';
 
 interface PropertyContextType {
   properties: Property[];
@@ -254,26 +257,35 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
     setProperties(prev => [newProp, ...prev]);
     if (isSupabaseConfigured()) {
-      upsertPropertyToSupabase(newProp);
+      upsertPropertyToSupabase(newProp).then(saved => {
+        if (!saved) alert(CLOUD_SAVE_ERROR);
+      });
     }
   };
 
   const updateProperty = (id: string, updated: Partial<Property>) => {
-    let updatedFull: Property | null = null;
-    setProperties(prev => prev.map(p => {
-      if (p.id === id) {
-        updatedFull = { ...p, ...updated };
-        return updatedFull;
-      }
-      return p;
-    }));
+    const current = properties.find(p => p.id === id);
+    setProperties(prev => prev.map(p => (p.id === id ? { ...p, ...updated } : p)));
     if (selectedProperty && selectedProperty.id === id) {
       setSelectedProperty(prev => prev ? { ...prev, ...updated } : null);
     }
-    if (isSupabaseConfigured() && updatedFull) {
-      upsertPropertyToSupabase(updatedFull);
+    if (isSupabaseConfigured() && current) {
+      const updatedFull: Property = { ...current, ...updated };
+      upsertPropertyToSupabase(updatedFull).then(saved => {
+        if (!saved) {
+          alert(CLOUD_SAVE_ERROR);
+          return;
+        }
+        deletePropertyImages(
+          unusedImages(current.images.filter(url => !updatedFull.images.includes(url)), id)
+        );
+      });
     }
   };
+
+  // Fotos de la lista que ninguna otra propiedad está usando
+  const unusedImages = (urls: string[], ownerId: string) =>
+    urls.filter(url => !properties.some(p => p.id !== ownerId && p.images.includes(url)));
 
   const deleteProperty = (id: string) => {
     const target = properties.find(p => p.id === id);
@@ -282,7 +294,13 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setComparisonList(prev => prev.filter(compId => compId !== id));
     if (selectedProperty?.id === id) setSelectedProperty(null);
     if (isSupabaseConfigured() && target) {
-      deletePropertyFromSupabase(target);
+      deletePropertyFromSupabase(target).then(deleted => {
+        if (!deleted) {
+          alert('No se pudo eliminar la propiedad en la nube. Revisa tu sesión e inténtalo nuevamente.');
+          return;
+        }
+        deletePropertyImages(unusedImages(target.images, id));
+      });
     }
   };
 

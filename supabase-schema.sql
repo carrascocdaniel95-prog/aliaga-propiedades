@@ -84,34 +84,14 @@ CREATE TABLE IF NOT EXISTS public.custom_property_requests (
 );
 
 -- ========================================================
--- Políticas de Seguridad (Row Level Security - RLS)
--- Permiten a la aplicación web sincronizarse con la API pública
+-- Seguridad (Row Level Security - RLS)
+-- Las políticas de acceso están en supabase-storage-auth.sql:
+-- ejecútalo después de este script.
 -- ========================================================
 
 ALTER TABLE public.properties ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.visit_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.custom_property_requests ENABLE ROW LEVEL SECURITY;
-
--- Limpieza preventiva de políticas anteriores
-DROP POLICY IF EXISTS "Acceso total a propiedades" ON public.properties;
-DROP POLICY IF EXISTS "Acceso total a solicitudes de visita" ON public.visit_requests;
-DROP POLICY IF EXISTS "Acceso total a búsquedas personalizadas" ON public.custom_property_requests;
-
--- Políticas de acceso para la aplicación web
-CREATE POLICY "Acceso total a propiedades"
-    ON public.properties FOR ALL
-    USING (true)
-    WITH CHECK (true);
-
-CREATE POLICY "Acceso total a solicitudes de visita"
-    ON public.visit_requests FOR ALL
-    USING (true)
-    WITH CHECK (true);
-
-CREATE POLICY "Acceso total a búsquedas personalizadas"
-    ON public.custom_property_requests FOR ALL
-    USING (true)
-    WITH CHECK (true);
 
 -- ========================================================
 -- Catálogo Inicial de Propiedades (Semillero / Seed)
