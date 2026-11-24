@@ -26,6 +26,7 @@ import { useProperties } from '../context/PropertyContext';
 import { useAuth } from '../context/AuthContext';
 import { AdminLogin } from './AdminLogin';
 import { PhotoUploader } from './PhotoUploader';
+import { PhotoOrderList } from './PhotoOrderList';
 import { Property, OperationType, PropertyType, PropertyStatus } from '../types/property';
 import { formatPrice, getWhatsAppUrl } from '../utils/formatters';
 
@@ -1019,28 +1020,10 @@ export const AdminPanelModal: React.FC = () => {
 
                 {/* Live Photo Previews */}
                 {imagePreviews.length > 0 && (
-                  <div>
-                    <span className="text-[11px] font-bold text-slate-500 mb-1.5 block">
-                      Vista previa de fotos cargadas ({imagePreviews.length}):
-                    </span>
-                    <div className="flex gap-2 overflow-x-auto pb-2">
-                      {imagePreviews.map((url, idx) => (
-                        <div key={idx} className="relative flex-shrink-0 w-24 h-16 rounded-xl overflow-hidden border border-slate-200 group">
-                          <img src={url} alt="" className="w-full h-full object-cover" />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updated = imagePreviews.filter((_, i) => i !== idx);
-                              setFormImages(updated.join('\n'));
-                            }}
-                            className="absolute top-1 right-1 p-0.5 rounded-full bg-black/70 text-white sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <PhotoOrderList
+                    images={imagePreviews}
+                    onChange={(images) => setFormImages(images.join('\n'))}
+                  />
                 )}
 
                 <div>
